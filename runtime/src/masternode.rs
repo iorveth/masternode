@@ -45,12 +45,12 @@ decl_module! {
 					ensure!(who != *masternode, "Masternode cannot own another masternode");
 				}
 			}
-			let mut masternodes = <MasternodeList<T>>::get(&who);
 			ensure!(who != masternode_id, "Cannot create masternode from yourself");
+			let mut masternodes = <MasternodeList<T>>::get(&who);
 			ensure!(masternodes.iter().all(|masternode| *masternode != masternode_id), "This account_id already associated with masternode");
 			<balances::Module<T>>::reserve(&who, Self::masternode_deposit())?;
 			masternodes.push(masternode_id.clone());
-			<MasternodeList<T>>::insert(who.clone(), masternodes);
+			<MasternodeList<T>>::insert(&who, masternodes);
 			Self::deposit_event(RawEvent::MasternodeCreated(who, masternode_id));
 			Ok(())
 		}
@@ -66,9 +66,9 @@ decl_module! {
 				}
 			}
 			if masternodes.is_empty() {
-				<MasternodeList<T>>::remove(who.clone());
+				<MasternodeList<T>>::remove(&who);
 			} else {
-				<MasternodeList<T>>::insert(who.clone(), masternodes);
+				<MasternodeList<T>>::insert(&who, masternodes);
 			}
 			<balances::Module<T>>::unreserve(&who, Self::masternode_deposit());
 			Self::deposit_event(RawEvent::MasternodeBroke(who, masternode_id));
@@ -78,7 +78,7 @@ decl_module! {
 		pub fn generate_random_values(origin) -> Result {
 			let who = ensure_signed(origin)?;
 			let random_values = Self::gen_random_values();
-			<RandomList<T>>::insert(who.clone(), random_values.clone());
+			<RandomList<T>>::insert(&who, &random_values);
 			Self::deposit_event(RawEvent::ValuesGenerated(who, random_values));
 			Ok(())
 		}
